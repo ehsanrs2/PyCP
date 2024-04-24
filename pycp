@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+
+def install_package(package_name):
+    try:
+        __import__(package_name)
+    except ImportError:
+        response = input(f"The required package '{package_name}' is not installed. Install it now? (y/n): ").lower()
+        if response.lower() in ['y', 'yes']:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        else:
+            print("This script cannot run without the necessary packages. Exiting.")
+            sys.exit(1)
+
+install_package('rich')  # Ensure the 'rich' package is installed
+
+import argparse
+import os
+import shutil
+from pathlib import Path
+from rich.progress import Progress
+
+# Additional function implementations
+
+def copy_file_with_progress(src, dest, progress, total_task, current_task, files_copied, overwrite=False):
+    """ This function copies a file from the source to the destination with a progress bar.
+ 
+    Args:
+        src (Path): The source file to copy
+        dest (Path): The destination file to copy to
+        progress (Progress): The rich Progress object to display the progress bar
+        total_task (int): The index of the total progress task
+        current_task (int): The index of the current file copy task
+        files_copied (int): The number of files copied so far
+        overwrite (bool, optional): Whether to overwrite the destination file if it exists. Defaults to False.
+
+    Returns:
+        None
+    """
+    src = Path(src)
+    dest = Path(dest)
+
+    # Check if the destination is a directory and adjust if necessary
+    if dest.is_dir():
+        dest = dest / src.name # Append the source file name to the destination directory
+
+    # Handle existing files based on the overwrite flag
+    if dest.exists():
+        if not overwrite:
+            print(f"Skipping {src} because it already exists.")
+            progress.update(total_task, advance=1)
+            return  # Skip this file as we are not overwriting
+        else:
+            print(f"Overwriting {dest}")
+
+    file_size = src.stat().st_size
+    with src.open('rb') as f_src, dest.open('wb') as f_dest:
+        while chunk := f_src.read(4096):
+            f_dest.write(chunk)
+            progress.update(current_task, advance=len(chunk))
+    progress.update(total_task, advance=1)
+    progress.update(total_task, description=f"Total Progress: {files_copied + 1}/{progress.tasks[total_task].total} files copied")
+
+
+
+def copy_directory_recursive(src, dest, progress, total_task, files_copied, overwrite=False):
+    src_path = Path(src)
+    dest_path = Path(dest)
+    os.makedirs(dest_path, exist_ok=True)
+
+    for item in src_path.iterdir():
+        source_item = src_path / item.name
+        dest_item = dest_path / item.name
+        if source_item.is_dir():
+            files_copied = copy_directory_recursive(source_item, dest_item, progress, total_task, files_copied, overwrite)
+        else:
+            current_task = progress.add_task(f"[green]Copying {item.name}...", total=source_item.stat().st_size)
+            copy_file_with_progress(source_item, dest_item, progress, total_task, current_task, files_copied, overwrite)
+            progress.remove_task(current_task)
+            files_copied += 1
+    return files_copied
+def main():
+    parser = argparse.ArgumentParser(description="Copy files and directories with a progress bar.")
+    parser.add_argument('source', type=str, help='Source file or directory')
+    parser.add_argument('destination', type=str, help='Destination file or directory')
+    parser.add_argument('-r', '--recursive', action='store_true', help='Copy directories recursively')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files without asking')
+    parser.add_argument('--no-overwrite', action='store_true', help='Do not overwrite any existing files')
+    
+    args = parser.parse_args()
+
+    # Check for conflicting flags
+    if args.overwrite and args.no_overwrite:
+        print("Conflicting options: --overwrite and --no-overwrite. Please choose one.")
+        sys.exit(1)
+
+    # Set default overwrite behavior
+    overwrite = args.overwrite  # This will be True if --overwrite is set, False otherwise
+
+    src = Path(args.source)
+    dest = Path(args.destination)
+
+    if not src.exists():
+        print(f"The source {src} does not exist.")
+        sys.exit(1)
+
+    with Progress() as progress:
+        if args.recursive and src.is_dir():
+            total_files = sum(1 for _ in src.rglob('*') if _.is_file())  # Count total files
+            total_task = progress.add_task("[cyan]Total Progress: 0/{total_files} files copied", total=total_files)
+            copy_directory_recursive(src, dest, progress, total_task, 0, overwrite)
+        elif src.is_file():
+            total_task = progress.add_task("[cyan]Total Progress...", total=1)
+            current_task = progress.add_task(f"[green]Copying {src.name}...", total=src.stat().st_size)
+            copy_file_with_progress(src, dest, progress, total_task, current_task, 0, overwrite)
+            progress.remove_task(current_task)
+        else:
+            print("Source must be a file or directory. Use -r for directories.")
+            return
+
+        print("All files copied successfully.")
+
+if __name__ == "__main__":
+    main()
+
