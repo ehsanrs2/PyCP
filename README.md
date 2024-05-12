@@ -4,7 +4,7 @@
 ## Overview
 PyCP is a command-line utility designed to enhance the file copying process by displaying a dynamic progress bar. This tool helps users monitor the progress of copying large files or directories, providing a more interactive and informative experience compared to traditional copy commands.
 
-
+![alt text](image/demo.png)
 ## Features
 - **Progress Visualization:** Real-time progress bar for ongoing copy operations.
 - **Recursive Copying:** Support for copying entire directory structures.
