@@ -55,10 +55,6 @@ To copy files or directories using PyCP, you can use the following commands:
   pycp -r /path/to/source/directory /path/to/destination/directory
   ```
 
-- Use the `--no-overwrite` flag to skip overwriting existing files:
-  ```bash
-  pycp --no-overwrite /path/to/source/file /path/to/destination/file
-  ```
 - Use the `--overwrite` flag to overwriting all existing files:
   ```bash
   pycp --overwrite /path/to/source/file /path/to/destination/file
