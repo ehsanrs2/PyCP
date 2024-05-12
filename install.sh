@@ -17,9 +17,9 @@ echo "Running installation from directory: $SCRIPT_DIR"
 # Change to the directory where the script is located
 cd "$SCRIPT_DIR"
 
-# Check if the executable file exists
-if [ ! -f "pycp" ]; then
-    echo "Error: The required file 'pycp' is missing in $SCRIPT_DIR."
+# Check if the executable Python script exists
+if [ ! -f "./src/pycp/pycp.py" ]; then
+    echo "Error: The required file 'pycp.py' is missing in $SCRIPT_DIR/src/pycp."
     exit 1
 fi
 
@@ -29,11 +29,14 @@ if [ ! -f "pycp.1.gz" ]; then
     exit 1
 fi
 
-# Copying files to the appropriate directories
+# Copying the Python script to the appropriate directory
 echo "Installing pycp to $BIN_DIR"
-cp "pycp" "$BIN_DIR"
+cp "./src/pycp/pycp.py" "$BIN_DIR/pycp"
+
+# Ensure the script is executable
 chmod +x "$BIN_DIR/pycp"
 
+# Copying the man page to the appropriate directory
 echo "Installing pycp.1.gz to $MAN_DIR"
 cp "pycp.1.gz" "$MAN_DIR"
 

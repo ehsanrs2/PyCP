@@ -1,3 +1,23 @@
+
 message.txt
+
 pycp-deb/
 .ignor/
+.idea/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+# PDM
+.pdm-python
+pdm.lock
+
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/

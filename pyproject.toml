@@ -1,0 +1,33 @@
+[project]
+name = "pycp"
+version = "0.1.1"
+description = "Default template for PDM package"
+authors = [
+    {name = "Ehsan Rajabi safari", email = "ehsan.r.s2@gmail.com"},
+]
+dependencies = [
+    "rich>=13.7.1",
+]
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+test.cmd = [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-v",
+    "-s",
+    "tests",
+    "-t",
+    ".",
+    "-p",
+    "test_*.py",
+]
+test.env_file.override = ".env"
